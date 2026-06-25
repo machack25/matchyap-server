@@ -1,0 +1,54 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+model User {
+  id               String   @id @default(uuid())
+  email            String   @unique
+  username         String   @unique
+  passwordHash     String   // We will securely hash passwords later
+  bio              String?  @default("Just looking to yap.")
+  avatar           String   @default("Stranger")  
+  createdAt        DateTime @default(now())
+
+  matchesInitiated Match[]  @relation("MatchInitiator")
+  matchesReceived  Match[]  @relation("MatchReceiver")
+  blocksInitiated  Block[]  @relation("BlockInitiator")
+  blocksReceived   Block[]  @relation("BlockReceiver")
+}
+
+model Match {
+  id              String   @id @default(uuid())
+  initiatorId     String
+  receiverId      String
+  connectionScore Int      @default(15) // Tracks how unblurred they got
+  sparkFelt       Boolean  @default(false) // Did both press "Yes"?
+  createdAt       DateTime @default(now())
+
+  initiator       User     @relation("MatchInitiator", fields: [initiatorId], references: [id])
+  receiver        User     @relation("MatchReceiver", fields: [receiverId], references: [id])
+}
+
+model Block {
+  id              String   @id @default(uuid())
+  blockerId       String
+  blockedId       String
+  createdAt       DateTime @default(now())
+
+  blocker         User     @relation("BlockInitiator", fields: [blockerId], references: [id])
+  blocked         User     @relation("BlockReceiver", fields: [blockedId], references: [id])
+}
+
+model DirectMessage {
+  id         String   @id @default(uuid())
+  senderId   String
+  receiverId String
+  text       String
+  createdAt  DateTime @default(now())
+}
