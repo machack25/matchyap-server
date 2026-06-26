@@ -1,18 +1,20 @@
 // prisma/schema.prisma
 
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
 }
 
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
 model User {
   id               String   @id @default(uuid())
   email            String   @unique
   username         String   @unique
-  passwordHash     String   // We will securely hash passwords later
+  passwordHash     String   
   bio              String?  @default("Just looking to yap.")
   avatar           String   @default("Stranger")  
   createdAt        DateTime @default(now())
@@ -21,14 +23,18 @@ model User {
   matchesReceived  Match[]  @relation("MatchReceiver")
   blocksInitiated  Block[]  @relation("BlockInitiator")
   blocksReceived   Block[]  @relation("BlockReceiver")
+  
+  // 🚨 NEW: Added report relations
+  reportsInitiated Report[] @relation("ReportInitiator")
+  reportsReceived  Report[] @relation("ReportReceiver")
 }
 
 model Match {
   id              String   @id @default(uuid())
   initiatorId     String
   receiverId      String
-  connectionScore Int      @default(15) // Tracks how unblurred they got
-  sparkFelt       Boolean  @default(false) // Did both press "Yes"?
+  connectionScore Int      @default(15) 
+  sparkFelt       Boolean  @default(false) 
   createdAt       DateTime @default(now())
 
   initiator       User     @relation("MatchInitiator", fields: [initiatorId], references: [id])
@@ -51,4 +57,17 @@ model DirectMessage {
   receiverId String
   text       String
   createdAt  DateTime @default(now())
+}
+
+model Report {
+  id          String   @id @default(uuid())
+  reporterId  String
+  reportedId  String
+  screenshot  String   @db.Text // Text type allows massive strings for base64 images
+  reason      String
+  status      String   @default("pending")
+  createdAt   DateTime @default(now())
+
+  reporter    User     @relation("ReportInitiator", fields: [reporterId], references: [id])
+  reported    User     @relation("ReportReceiver", fields: [reportedId], references: [id])
 }

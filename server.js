@@ -149,6 +149,30 @@ app.post('/api/match/save', async (req, res) => {
   } catch (err) { res.status(500).json({ error: "Failed to save match." }); }
 });
 
+app.post('/api/report', async (req, res) => {
+  try {
+    const { reporterId, reportedId, screenshot, reason } = req.body;
+
+    if (!reporterId || !reportedId || !screenshot) {
+      return res.status(400).json({ error: 'Missing required report data.' });
+    }
+
+    const newReport = await prisma.report.create({
+      data: {
+        reporterId,
+        reportedId,
+        screenshot,
+        reason
+      }
+    });
+
+    res.status(200).json({ success: true, message: 'Report filed successfully.', reportId: newReport.id });
+  } catch (err) {
+    console.error("Failed to save report:", err);
+    res.status(500).json({ error: 'Internal server error while filing report.' });
+  }
+});
+
 app.delete('/api/match/remove', async (req, res) => {
   const { userId, partnerId } = req.body;
   try {
