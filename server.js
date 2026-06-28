@@ -16,6 +16,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
+// Health Check Route for Render
+app.get('/', (req, res) => {
+    res.status(200).send('MatchYap API is fully active and running!');
+});
+
 const connectionString = process.env.DATABASE_URL;
 const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
