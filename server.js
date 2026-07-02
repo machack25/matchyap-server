@@ -13,7 +13,11 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: ['http://localhost:3000', 'https://matchyap.vercel.app'],
+  credentials: true
+}));
+
 app.use(express.json());
 
 // Health Check Route for Render
